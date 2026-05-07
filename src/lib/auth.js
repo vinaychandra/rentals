@@ -25,7 +25,7 @@ export function initAuth() {
                 return;
             }
             accessToken = response.access_token;
-            sessionStorage.setItem(TOKEN_KEY, accessToken);
+            localStorage.setItem(TOKEN_KEY, accessToken);
             if (onAuthCallback) {
                 onAuthCallback(accessToken);
             }
@@ -39,20 +39,20 @@ export function initAuth() {
  * @returns {Promise<boolean>}
  */
 export async function tryRestoreSession() {
-    const stored = sessionStorage.getItem(TOKEN_KEY);
+    const stored = localStorage.getItem(TOKEN_KEY);
     if (!stored) return false;
 
     // Validate the token with a lightweight Google API call
     try {
         const res = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${encodeURIComponent(stored)}`);
         if (!res.ok) {
-            sessionStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(TOKEN_KEY);
             return false;
         }
         accessToken = stored;
         return true;
     } catch {
-        sessionStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
         return false;
     }
 }
@@ -83,7 +83,7 @@ export function signOut() {
         google.accounts.oauth2.revoke(accessToken, () => {});
     }
     accessToken = null;
-    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
 }
 
 /**
