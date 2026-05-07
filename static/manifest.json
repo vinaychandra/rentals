@@ -1,0 +1,37 @@
+{
+	"name": "Rentals Tracker",
+	"short_name": "Rentals",
+	"description": "Rental & Payment Tracking",
+	"start_url": "/rentals/",
+	"scope": "/rentals/",
+	"display": "standalone",
+	"background_color": "#f9fafb",
+	"theme_color": "#1f2937",
+	"orientation": "any",
+	"icons": [
+		{
+			"src": "/rentals/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/rentals/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any"
+		},
+		{
+			"src": "/rentals/icon-192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "maskable"
+		},
+		{
+			"src": "/rentals/icon-512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "maskable"
+		}
+	]
+}
