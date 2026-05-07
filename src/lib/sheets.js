@@ -193,39 +193,71 @@ export async function ensureSheetSetup() {
 
     // Find tabs that need to be created
     const missingTabs = Object.keys(TAB_HEADERS).filter((name) => !existingNames.has(name));
-    if (missingTabs.length === 0) return;
 
-    // Batch-create all missing tabs
-    const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-            requests: missingTabs.map((title) => ({
-                addSheet: { properties: { title } }
-            }))
-        })
-    });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(`Failed to create sheet tabs: ${err.error?.message || res.statusText}`);
+    if (missingTabs.length > 0) {
+        // Batch-create all missing tabs
+        const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({
+                requests: missingTabs.map((title) => ({
+                    addSheet: { properties: { title } }
+                }))
+            })
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(`Failed to create sheet tabs: ${err.error?.message || res.statusText}`);
+        }
     }
 
-    // Write header rows to all newly created tabs
-    const headerUrl = `${SHEETS_API_BASE}/${SHEET_ID}/values:batchUpdate`;
-    const headerRes = await fetch(headerUrl, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-            valueInputOption: 'RAW',
-            data: missingTabs.map((name) => ({
-                range: `${name}!A1`,
-                values: [TAB_HEADERS[name]]
-            }))
-        })
-    });
-    if (!headerRes.ok) {
-        const err = await headerRes.json().catch(() => ({}));
-        throw new Error(`Failed to write headers: ${err.error?.message || headerRes.statusText}`);
+    // Verify and fix headers on ALL tabs (both new and existing)
+    // Read current headers for all tabs in one batch
+    const allTabNames = Object.keys(TAB_HEADERS);
+    const headerRanges = allTabNames.map((name) => `${name}!A1:Z1`);
+    const batchReadUrl = `${SHEETS_API_BASE}/${SHEET_ID}/values:batchGet?${headerRanges.map((r) => `ranges=${encodeURIComponent(r)}`).join('&')}`;
+    const batchReadRes = await fetch(batchReadUrl, { headers: authHeaders() });
+
+    /** @type {Array<{range: string, name: string}>} */
+    const tabsToFix = [];
+
+    if (batchReadRes.ok) {
+        const batchData = await batchReadRes.json();
+        const valueRanges = batchData.valueRanges || [];
+        for (let i = 0; i < allTabNames.length; i++) {
+            const name = allTabNames[i];
+            const currentHeaders = valueRanges[i]?.values?.[0] || [];
+            const expectedHeaders = TAB_HEADERS[name];
+            // Fix if headers are missing or don't match
+            if (currentHeaders.length !== expectedHeaders.length ||
+                !expectedHeaders.every((h, idx) => currentHeaders[idx] === h)) {
+                tabsToFix.push({ range: `${name}!A1`, name });
+            }
+        }
+    } else {
+        // If batch read fails, write headers to all new tabs at minimum
+        for (const name of missingTabs) {
+            tabsToFix.push({ range: `${name}!A1`, name });
+        }
+    }
+
+    if (tabsToFix.length > 0) {
+        const headerUrl = `${SHEETS_API_BASE}/${SHEET_ID}/values:batchUpdate`;
+        const headerRes = await fetch(headerUrl, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({
+                valueInputOption: 'RAW',
+                data: tabsToFix.map(({ range, name }) => ({
+                    range,
+                    values: [TAB_HEADERS[name]]
+                }))
+            })
+        });
+        if (!headerRes.ok) {
+            const err = await headerRes.json().catch(() => ({}));
+            throw new Error(`Failed to write headers: ${err.error?.message || headerRes.statusText}`);
+        }
     }
 }
