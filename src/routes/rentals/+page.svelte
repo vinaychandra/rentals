@@ -356,7 +356,7 @@
             {@const paid = paidThisMonth(prop.ID)}
             {@const last = lastPayment(prop.ID)}
             <div class="bg-white rounded-lg border border-gray-200 p-4">
-                <div class="flex items-start justify-between">
+                <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2 flex-wrap">
                             <h3 class="font-semibold text-gray-800">
@@ -389,37 +389,9 @@
                                     : ""}
                             </p>
                         {/if}
-
-                        <!-- Payment summary -->
-                        <div
-                            class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs"
-                        >
-                            <span
-                                class="{paid >= rent
-                                    ? 'text-green-600'
-                                    : paid > 0
-                                      ? 'text-orange-500'
-                                      : 'text-red-500'} font-medium"
-                            >
-                                {curMonthLabel}: {formatINR(paid)} / {formatINR(
-                                    rent,
-                                )}
-                                {#if paid >= rent}✓{:else if rent - paid > 0}(due
-                                    {formatINR(rent - paid)}){/if}
-                            </span>
-                            {#if last}
-                                <span class="text-gray-400">
-                                    Last: {formatINR(Number(last.Amount))} on {last.Date}
-                                    via {last.Method}
-                                </span>
-                            {:else}
-                                <span class="text-gray-400"
-                                    >No payments yet</span
-                                >
-                            {/if}
-                        </div>
                     </div>
-                    <div class="flex items-center gap-1 ml-2 shrink-0">
+                    <!-- Buttons: inline on md+, hidden on mobile -->
+                    <div class="hidden md:flex items-center gap-1 ml-2 shrink-0">
                         <a
                             href="{base}/rentals/{prop.ID}"
                             class="text-xs px-3 py-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
@@ -437,6 +409,55 @@
                             >Delete</button
                         >
                     </div>
+                </div>
+
+                <!-- Payment summary -->
+                <div
+                    class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs"
+                >
+                    <span
+                        class="{paid >= rent
+                            ? 'text-green-600'
+                            : paid > 0
+                              ? 'text-orange-500'
+                              : 'text-red-500'} font-medium"
+                    >
+                        {curMonthLabel}: {formatINR(paid)} / {formatINR(
+                            rent,
+                        )}
+                        {#if paid >= rent}✓{:else if rent - paid > 0}(due
+                            {formatINR(rent - paid)}){/if}
+                    </span>
+                    {#if last}
+                        <span class="text-gray-400">
+                            Last: {formatINR(Number(last.Amount))} on {last.Date}
+                            via {last.Method}
+                        </span>
+                    {:else}
+                        <span class="text-gray-400"
+                            >No payments yet</span
+                        >
+                    {/if}
+                </div>
+
+                <!-- Buttons: bottom row on mobile, hidden on md+ -->
+                <div class="flex md:hidden items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+                    <a
+                        href="{base}/rentals/{prop.ID}"
+                        class="text-xs px-3 py-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                    >
+                        Payments
+                    </a>
+                    <button
+                        onclick={() => editProperty(prop)}
+                        class="text-xs px-2 py-1.5 text-gray-400 hover:text-gray-700 cursor-pointer"
+                        >Edit</button
+                    >
+                    <button
+                        onclick={() => deleteProperty(prop.ID)}
+                        class="text-xs px-2 py-1.5 text-red-400 hover:text-red-600 cursor-pointer"
+                        >Delete</button
+                    >
                 </div>
             </div>
         {/each}
