@@ -6,8 +6,17 @@
 	import { SHEET_NAMES, generateId, formatINR } from '$lib/config.js';
 	import { loading, showError } from '$lib/stores.js';
 
-	let clients = $state([]);
-	let billMonth = $state('');
+	const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	const prevMonth = new Date().getMonth() || 12;
+	const prevMonthYear = prevMonth === 12 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+
+	let meters = $state([]);
+	let allClients = $state([]);
+	let allPastReadings = $state([]);
+
+	let selectedMeterId = $state('');
+	let billMonth = $state(prevMonth);
+	let billYear = $state(prevMonthYear);
 	let billAmount = $state('');
 	let billDate = $state(new Date().toISOString().split('T')[0]);
 	let billNotes = $state('');
@@ -20,31 +29,45 @@
 	onMount(async () => {
 		$loading = true;
 		try {
-			// Load active clients
-			const { rows } = await readSheetAsObjects(SHEET_NAMES.ELECTRICITY_CLIENTS);
-			clients = rows.filter((c) => c.Status === 'Active');
+			const [meterData, clientData, readingData] = await Promise.all([
+				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_METERS),
+				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_CLIENTS),
+				readSheetAsObjects(SHEET_NAMES.METER_READINGS)
+			]);
+			meters = meterData.rows.filter((m) => m.Status === 'Active');
+			allClients = clientData.rows;
+			allPastReadings = readingData.rows;
 
-			// Load past readings to get last current reading for each client
-			const { rows: pastReadings } = await readSheetAsObjects(SHEET_NAMES.METER_READINGS);
-
-			readings = clients.map((c) => {
-				// Find the most recent reading for this client
-				const clientReadings = pastReadings.filter((r) => r.ClientID === c.ID);
-				const lastReading = clientReadings.length > 0 ? clientReadings[clientReadings.length - 1].CurrentReading : '';
-
-				return {
-					clientId: c.ID,
-					clientName: c.Name,
-					previousReading: lastReading,
-					currentReading: ''
-				};
-			});
+			if (meters.length > 0) {
+				selectedMeterId = meters[0].ID;
+			}
 		} catch (e) {
 			showError('Failed to load data: ' + e.message);
 		} finally {
 			$loading = false;
 		}
 	});
+
+	// When meter selection changes, rebuild readings for that meter's active clients
+	$effect(() => {
+		if (!selectedMeterId) {
+			readings = [];
+			return;
+		}
+		const meterClients = allClients.filter((c) => c.MeterID === selectedMeterId && c.Status === 'Active');
+		readings = meterClients.map((c) => {
+			const clientReadings = allPastReadings.filter((r) => r.ClientID === c.ID);
+			const lastReading = clientReadings.length > 0 ? clientReadings[clientReadings.length - 1].CurrentReading : '';
+			return {
+				clientId: c.ID,
+				clientName: c.Name,
+				previousReading: lastReading,
+				currentReading: ''
+			};
+		});
+	});
+
+	let billMonthKey = $derived(`${billYear}-${String(billMonth).padStart(2, '0')}`);
 
 	// Calculate units and shares reactively
 	let calculations = $derived.by(() => {
@@ -68,8 +91,8 @@
 	let totalUnits = $derived(calculations.reduce((s, c) => s + c.units, 0));
 
 	async function saveBill() {
-		if (!billMonth || !billAmount || !billDate) {
-			showError('Month, Amount, and Date are required');
+		if (!selectedMeterId || !billMonth || !billYear || !billAmount || !billDate) {
+			showError('Meter, Month, Year, Amount, and Date are required');
 			return;
 		}
 
@@ -83,9 +106,9 @@
 		try {
 			const billId = generateId();
 
-			// Save the bill
+			// Save the bill (with MeterID)
 			await appendRows(SHEET_NAMES.ELECTRICITY_BILLS, [
-				[billId, billMonth, billAmount, billDate, billNotes]
+				[billId, selectedMeterId, billMonthKey, billAmount, billDate, billNotes]
 			]);
 
 			// Save meter readings
@@ -129,10 +152,33 @@
 	<!-- Bill Details -->
 	<div class="bg-white rounded-lg border border-gray-200 p-4">
 		<h2 class="font-semibold text-gray-700 mb-3">Bill Details</h2>
-		<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+		<!-- Main Meter -->
+		<div class="mb-3">
+			<label for="meter" class="block text-sm font-medium text-gray-700">Main Meter *</label>
+			{#if meters.length === 0}
+				<p class="mt-1 text-sm text-gray-400">No active meters. <a href="{base}/electricity" class="text-gray-600 underline">Add one first</a>.</p>
+			{:else}
+				<select id="meter" bind:value={selectedMeterId} class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none">
+					{#each meters as meter}
+						<option value={meter.ID}>{meter.Name}{meter.MeterNumber ? ` (#${meter.MeterNumber})` : ''}</option>
+					{/each}
+				</select>
+			{/if}
+		</div>
+
+		<div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
 			<div>
 				<label for="month" class="block text-sm font-medium text-gray-700">Month *</label>
-				<input id="month" type="month" bind:value={billMonth} class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none" />
+				<select id="month" bind:value={billMonth} class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none">
+					{#each MONTHS as name, i}
+						<option value={i + 1}>{name}</option>
+					{/each}
+				</select>
+			</div>
+			<div>
+				<label for="year" class="block text-sm font-medium text-gray-700">Year *</label>
+				<input id="year" type="number" bind:value={billYear} min="2020" max="2099" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none" />
 			</div>
 			<div>
 				<label for="amount" class="block text-sm font-medium text-gray-700">Total Bill (₹) *</label>
@@ -151,10 +197,12 @@
 
 	<!-- Meter Readings -->
 	<div class="bg-white rounded-lg border border-gray-200 p-4">
-		<h2 class="font-semibold text-gray-700 mb-3">Meter Readings</h2>
+		<h2 class="font-semibold text-gray-700 mb-3">Submeter Readings</h2>
 
-		{#if readings.length === 0}
-			<p class="text-gray-400 text-sm">No active clients. Add clients first.</p>
+		{#if !selectedMeterId}
+			<p class="text-gray-400 text-sm">Select a main meter first.</p>
+		{:else if readings.length === 0}
+			<p class="text-gray-400 text-sm">No active submeters for this meter. <a href="{base}/electricity" class="text-gray-600 underline">Add some first</a>.</p>
 		{:else}
 			<div class="space-y-3">
 				{#each readings as reading, i}
@@ -196,7 +244,7 @@
 	</div>
 
 	<div class="flex justify-end">
-		<button type="submit" class="bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 cursor-pointer">
+		<button type="submit" disabled={meters.length === 0} class="bg-gray-800 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
 			Save Bill
 		</button>
 	</div>

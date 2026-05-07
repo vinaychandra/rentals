@@ -5,8 +5,9 @@ import { getToken } from './auth.js';
 const TAB_HEADERS = {
     [SHEET_NAMES.PROPERTIES]: ['ID', 'Name', 'Address', 'MonthlyRent', 'TenantName', 'TenantContact', 'Status', 'Notes'],
     [SHEET_NAMES.RENTAL_PAYMENTS]: ['ID', 'PropertyID', 'Month', 'Amount', 'Method', 'Date', 'Notes'],
-    [SHEET_NAMES.ELECTRICITY_CLIENTS]: ['ID', 'Name', 'Contact', 'MeterNumber', 'Status', 'Notes'],
-    [SHEET_NAMES.ELECTRICITY_BILLS]: ['ID', 'Month', 'TotalAmount', 'Date', 'Notes'],
+    [SHEET_NAMES.ELECTRICITY_METERS]: ['ID', 'Name', 'MeterNumber', 'Location', 'Status', 'Notes'],
+    [SHEET_NAMES.ELECTRICITY_CLIENTS]: ['ID', 'Name', 'MeterID', 'Contact', 'MeterNumber', 'Status', 'Notes'],
+    [SHEET_NAMES.ELECTRICITY_BILLS]: ['ID', 'MeterID', 'Month', 'TotalAmount', 'Date', 'Notes'],
     [SHEET_NAMES.METER_READINGS]: ['ID', 'BillID', 'ClientID', 'PreviousReading', 'CurrentReading', 'Units'],
     [SHEET_NAMES.ELECTRICITY_PAYMENTS]: ['ID', 'BillID', 'ClientID', 'AmountDue', 'AmountPaid', 'Method', 'Date', 'Status']
 };

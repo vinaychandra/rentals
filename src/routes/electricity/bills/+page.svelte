@@ -5,6 +5,7 @@
 	import { SHEET_NAMES, PAYMENT_METHODS, formatINR } from '$lib/config.js';
 	import { loading, showError } from '$lib/stores.js';
 
+	let meters = $state([]);
 	let bills = $state([]);
 	let clients = $state([]);
 	let readings = $state([]);
@@ -19,12 +20,14 @@
 	async function loadAll() {
 		$loading = true;
 		try {
-			const [billData, clientData, readingData, paymentData] = await Promise.all([
+			const [meterData, billData, clientData, readingData, paymentData] = await Promise.all([
+				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_METERS),
 				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_BILLS),
 				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_CLIENTS),
 				readSheetAsObjects(SHEET_NAMES.METER_READINGS),
 				readSheetAsObjects(SHEET_NAMES.ELECTRICITY_PAYMENTS)
 			]);
+			meters = meterData.rows;
 			bills = billData.rows.sort((a, b) => b.Month.localeCompare(a.Month));
 			clients = clientData.rows;
 			readings = readingData.rows;
@@ -34,6 +37,10 @@
 		} finally {
 			$loading = false;
 		}
+	}
+
+	function meterName(meterId) {
+		return meters.find((m) => m.ID === meterId)?.Name || 'Unknown meter';
 	}
 
 	function clientName(clientId) {
@@ -96,7 +103,7 @@
 			href="{base}/electricity"
 			class="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
 		>
-			Clients
+			Meters
 		</a>
 		<a
 			href="{base}/electricity/bills/new"
@@ -158,7 +165,10 @@
 				<div class="flex items-center justify-between mb-3">
 					<div>
 						<h3 class="font-semibold text-gray-700">{bill.Month}</h3>
-						<p class="text-sm text-gray-500">{bill.Date} {bill.Notes ? `— ${bill.Notes}` : ''}</p>
+						<p class="text-sm text-gray-500">
+							{meterName(bill.MeterID)} · {bill.Date}
+							{bill.Notes ? ` — ${bill.Notes}` : ''}
+						</p>
 					</div>
 					<div class="text-right">
 						<p class="font-semibold text-gray-800">{formatINR(Number(bill.TotalAmount))}</p>

@@ -44,9 +44,26 @@
 
     // Current billing month (previous month convention)
     const curMonth = new Date().getMonth() || 12;
-    const curMonthYear = curMonth === 12 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+    const curMonthYear =
+        curMonth === 12
+            ? new Date().getFullYear() - 1
+            : new Date().getFullYear();
     const curMonthKey = `${curMonthYear}-${String(curMonth).padStart(2, "0")}`;
-    const MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const MONTH_NAMES = [
+        "",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ];
     const curMonthLabel = `${MONTH_NAMES[curMonth]} ${curMonthYear}`;
 
     onMount(() => loadProperties());
@@ -374,17 +391,31 @@
                         {/if}
 
                         <!-- Payment summary -->
-                        <div class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs">
-                            <span class="{paid >= rent ? 'text-green-600' : paid > 0 ? 'text-orange-500' : 'text-red-500'} font-medium">
-                                {curMonthLabel}: {formatINR(paid)} / {formatINR(rent)}
-                                {#if paid >= rent}✓{:else if rent - paid > 0}(due {formatINR(rent - paid)}){/if}
+                        <div
+                            class="mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-1 text-xs"
+                        >
+                            <span
+                                class="{paid >= rent
+                                    ? 'text-green-600'
+                                    : paid > 0
+                                      ? 'text-orange-500'
+                                      : 'text-red-500'} font-medium"
+                            >
+                                {curMonthLabel}: {formatINR(paid)} / {formatINR(
+                                    rent,
+                                )}
+                                {#if paid >= rent}✓{:else if rent - paid > 0}(due
+                                    {formatINR(rent - paid)}){/if}
                             </span>
                             {#if last}
                                 <span class="text-gray-400">
-                                    Last: {formatINR(Number(last.Amount))} on {last.Date} via {last.Method}
+                                    Last: {formatINR(Number(last.Amount))} on {last.Date}
+                                    via {last.Method}
                                 </span>
                             {:else}
-                                <span class="text-gray-400">No payments yet</span>
+                                <span class="text-gray-400"
+                                    >No payments yet</span
+                                >
                             {/if}
                         </div>
                     </div>

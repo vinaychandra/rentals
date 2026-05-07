@@ -27,6 +27,7 @@ export const PAYMENT_METHODS = ['Cash', 'Cheque', 'UPI', 'Bank Transfer'];
 export const SHEET_NAMES = {
     PROPERTIES: 'Properties',
     RENTAL_PAYMENTS: 'RentalPayments',
+    ELECTRICITY_METERS: 'ElectricityMeters',
     ELECTRICITY_CLIENTS: 'ElectricityClients',
     ELECTRICITY_BILLS: 'ElectricityBills',
     METER_READINGS: 'MeterReadings',

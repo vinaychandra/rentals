@@ -80,7 +80,7 @@ export function signIn() {
  */
 export function signOut() {
     if (accessToken) {
-        google.accounts.oauth2.revoke(accessToken, () => {});
+        google.accounts.oauth2.revoke(accessToken, () => { });
     }
     accessToken = null;
     localStorage.removeItem(TOKEN_KEY);
