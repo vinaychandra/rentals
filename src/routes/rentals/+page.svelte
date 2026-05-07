@@ -391,7 +391,9 @@
                         {/if}
                     </div>
                     <!-- Buttons: inline on md+, hidden on mobile -->
-                    <div class="hidden md:flex items-center gap-1 ml-2 shrink-0">
+                    <div
+                        class="hidden md:flex items-center gap-1 ml-2 shrink-0"
+                    >
                         <a
                             href="{base}/rentals/{prop.ID}"
                             class="text-xs px-3 py-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
@@ -422,9 +424,7 @@
                               ? 'text-orange-500'
                               : 'text-red-500'} font-medium"
                     >
-                        {curMonthLabel}: {formatINR(paid)} / {formatINR(
-                            rent,
-                        )}
+                        {curMonthLabel}: {formatINR(paid)} / {formatINR(rent)}
                         {#if paid >= rent}✓{:else if rent - paid > 0}(due
                             {formatINR(rent - paid)}){/if}
                     </span>
@@ -434,14 +434,14 @@
                             via {last.Method}
                         </span>
                     {:else}
-                        <span class="text-gray-400"
-                            >No payments yet</span
-                        >
+                        <span class="text-gray-400">No payments yet</span>
                     {/if}
                 </div>
 
                 <!-- Buttons: bottom row on mobile, hidden on md+ -->
-                <div class="flex md:hidden items-center gap-2 mt-2 pt-2 border-t border-gray-100">
+                <div
+                    class="flex md:hidden items-center gap-2 mt-2 pt-2 border-t border-gray-100"
+                >
                     <a
                         href="{base}/rentals/{prop.ID}"
                         class="text-xs px-3 py-1.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
