@@ -15,7 +15,7 @@ const config = {
 			handleUnseenRoutes: 'ignore' // Dynamic routes like [id] are handled client-side
 		},
 		paths: {
-			base: process.env.NODE_ENV === 'production' ? '/Rentals' : ''
+			base: process.env.NODE_ENV === 'production' ? '/rentals' : ''
 		}
 	}
 };
