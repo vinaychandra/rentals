@@ -1,5 +1,7 @@
 import { GOOGLE_CLIENT_ID, SCOPES } from './config.js';
 
+const TOKEN_KEY = 'rentals_access_token';
+
 /** @type {google.accounts.oauth2.TokenClient | null} */
 let tokenClient = null;
 
@@ -23,11 +25,36 @@ export function initAuth() {
                 return;
             }
             accessToken = response.access_token;
+            sessionStorage.setItem(TOKEN_KEY, accessToken);
             if (onAuthCallback) {
                 onAuthCallback(accessToken);
             }
         }
     });
+}
+
+/**
+ * Try to restore a previous session by validating the stored token.
+ * Returns true if the session was restored, false otherwise.
+ * @returns {Promise<boolean>}
+ */
+export async function tryRestoreSession() {
+    const stored = sessionStorage.getItem(TOKEN_KEY);
+    if (!stored) return false;
+
+    // Validate the token with a lightweight Google API call
+    try {
+        const res = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${encodeURIComponent(stored)}`);
+        if (!res.ok) {
+            sessionStorage.removeItem(TOKEN_KEY);
+            return false;
+        }
+        accessToken = stored;
+        return true;
+    } catch {
+        sessionStorage.removeItem(TOKEN_KEY);
+        return false;
+    }
 }
 
 /**
@@ -44,7 +71,7 @@ export function signIn() {
         onAuthCallback = (token) => {
             resolve(token);
         };
-        tokenClient.requestAccessToken({ prompt: 'consent' });
+        tokenClient.requestAccessToken({ prompt: '' });
     });
 }
 
@@ -53,11 +80,10 @@ export function signIn() {
  */
 export function signOut() {
     if (accessToken) {
-        google.accounts.oauth2.revoke(accessToken, () => {
-            accessToken = null;
-        });
+        google.accounts.oauth2.revoke(accessToken, () => {});
     }
     accessToken = null;
+    sessionStorage.removeItem(TOKEN_KEY);
 }
 
 /**

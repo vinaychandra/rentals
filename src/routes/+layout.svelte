@@ -3,7 +3,7 @@
 	import { base } from "$app/paths";
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
-	import { initAuth, signIn, signOut, isSignedIn } from "$lib/auth.js";
+	import { initAuth, signIn, signOut, tryRestoreSession } from "$lib/auth.js";
 	import { ensureSheetSetup } from "$lib/sheets.js";
 	import { authenticated, errorMessage } from "$lib/stores.js";
 	import { GOOGLE_CLIENT_ID } from "$lib/config.js";
@@ -28,11 +28,18 @@
 
 	onMount(() => {
 		// Wait for GIS script to load
-		const interval = setInterval(() => {
+		const interval = setInterval(async () => {
 			if (typeof google !== "undefined" && google.accounts) {
 				clearInterval(interval);
 				initAuth();
 				ready = true;
+
+				// Try to restore a previous session
+				const restored = await tryRestoreSession();
+				if (restored) {
+					await ensureSheetSetup();
+					$authenticated = true;
+				}
 			}
 		}, 100);
 
