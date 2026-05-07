@@ -40,15 +40,15 @@ A lightweight web app for tracking rental properties and electricity billing, ba
 
 The app auto-creates a spreadsheet called **"Rentals Tracker"** in the signed-in user's Google Drive. It contains 7 tabs:
 
-| Tab                   | Columns                                                                           |
-| --------------------- | --------------------------------------------------------------------------------- |
-| `Properties`          | ID, Name, Address, MonthlyRent, TenantName, TenantContact, Status, Notes          |
-| `RentalPayments`      | ID, PropertyID, Month, Amount, Method, Date, Notes                                |
-| `ElectricityMeters`   | ID, Name, MeterNumber, Location, Status, Notes                                    |
-| `ElectricityClients`  | ID, Name, MeterID, Contact, MeterNumber, Status, Notes                            |
-| `ElectricityBills`    | ID, MeterID, Month, TotalAmount, Date, Notes                                      |
-| `MeterReadings`       | ID, BillID, ClientID, PreviousReading, CurrentReading, Units                      |
-| `ElectricityPayments` | ID, BillID, ClientID, AmountDue, AmountPaid, Method, Date, Status                 |
+| Tab                   | Columns                                                                  |
+| --------------------- | ------------------------------------------------------------------------ |
+| `Properties`          | ID, Name, Address, MonthlyRent, TenantName, TenantContact, Status, Notes |
+| `RentalPayments`      | ID, PropertyID, Month, Amount, Method, Date, Notes                       |
+| `ElectricityMeters`   | ID, Name, MeterNumber, Location, Status, Notes                           |
+| `ElectricityClients`  | ID, Name, MeterID, Contact, MeterNumber, Status, Notes                   |
+| `ElectricityBills`    | ID, MeterID, Month, TotalAmount, Date, Notes                             |
+| `MeterReadings`       | ID, BillID, ClientID, PreviousReading, CurrentReading, Units             |
+| `ElectricityPayments` | ID, BillID, ClientID, AmountDue, AmountPaid, Method, Date, Status        |
 
 **Note:** You do NOT need to create the spreadsheet or tabs manually. The app creates everything automatically on first sign-in, including header rows. On subsequent sign-ins, it verifies and fixes headers if the schema has changed.
 
