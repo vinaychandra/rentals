@@ -29,7 +29,9 @@
 	onMount(() => {
 		// Register service worker for PWA
 		if ("serviceWorker" in navigator) {
-			navigator.serviceWorker.register(`${base}/sw.js`, { scope: `${base}/` });
+			navigator.serviceWorker.register(`${base}/sw.js`, {
+				scope: `${base}/`,
+			});
 		}
 
 		// Wait for GIS script to load

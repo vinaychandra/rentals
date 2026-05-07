@@ -11,6 +11,9 @@ let accessToken = null;
 /** @type {((token: string) => void) | null} */
 let onAuthCallback = null;
 
+/** @type {((err: Error) => void) | null} */
+let onAuthError = null;
+
 /**
  * Initialize the Google Identity Services token client.
  * Must be called after the GIS script has loaded.
@@ -22,6 +25,7 @@ export function initAuth() {
         callback: (response) => {
             if (response.error) {
                 console.error('Auth error:', response.error);
+                if (onAuthError) onAuthError(new Error(response.error));
                 return;
             }
             accessToken = response.access_token;
@@ -29,6 +33,11 @@ export function initAuth() {
             if (onAuthCallback) {
                 onAuthCallback(accessToken);
             }
+        },
+        error_callback: (err) => {
+            // Fires when user closes the popup or an error occurs
+            console.warn('Auth popup closed or error:', err);
+            if (onAuthError) onAuthError(new Error(err?.message || 'Sign-in cancelled'));
         }
     });
 }
@@ -69,7 +78,12 @@ export function signIn() {
             return;
         }
         onAuthCallback = (token) => {
+            onAuthError = null;
             resolve(token);
+        };
+        onAuthError = (err) => {
+            onAuthCallback = null;
+            reject(err);
         };
         tokenClient.requestAccessToken({ prompt: '' });
     });
