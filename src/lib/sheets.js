@@ -1,5 +1,8 @@
-import { SHEETS_API_BASE, SHEET_ID, SHEET_NAMES } from './config.js';
+import { SHEETS_API_BASE, SPREADSHEET_NAME, SHEET_NAMES } from './config.js';
 import { getToken } from './auth.js';
+
+/** Dynamic spreadsheet ID — set by findOrCreateSpreadsheet() */
+let SHEET_ID = '';
 
 /** Header rows for each sheet tab */
 const TAB_HEADERS = {
@@ -260,4 +263,46 @@ export async function ensureSheetSetup() {
             throw new Error(`Failed to write headers: ${err.error?.message || headerRes.statusText}`);
         }
     }
+}
+
+/**
+ * Find or create the well-known spreadsheet.
+ * Searches Google Drive for a spreadsheet named SPREADSHEET_NAME.
+ * Creates one if not found. Sets the module-level SHEET_ID.
+ * @returns {Promise<string>} The spreadsheet ID
+ */
+export async function findOrCreateSpreadsheet() {
+    const headers = authHeaders();
+
+    // Search for existing spreadsheet by name
+    const query = encodeURIComponent(`name='${SPREADSHEET_NAME}' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`);
+    const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name)&pageSize=1`;
+    const searchRes = await fetch(searchUrl, { headers });
+    if (!searchRes.ok) {
+        const err = await searchRes.json().catch(() => ({}));
+        throw new Error(`Failed to search Drive: ${err.error?.message || searchRes.statusText}`);
+    }
+    const searchData = await searchRes.json();
+
+    if (searchData.files && searchData.files.length > 0) {
+        SHEET_ID = searchData.files[0].id;
+        return SHEET_ID;
+    }
+
+    // Not found — create a new spreadsheet
+    const createUrl = SHEETS_API_BASE;
+    const createRes = await fetch(createUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+            properties: { title: SPREADSHEET_NAME }
+        })
+    });
+    if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}));
+        throw new Error(`Failed to create spreadsheet: ${err.error?.message || createRes.statusText}`);
+    }
+    const createData = await createRes.json();
+    SHEET_ID = createData.spreadsheetId;
+    return SHEET_ID;
 }

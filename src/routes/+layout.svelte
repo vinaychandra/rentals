@@ -4,7 +4,7 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import { initAuth, signIn, signOut, tryRestoreSession } from "$lib/auth.js";
-	import { ensureSheetSetup } from "$lib/sheets.js";
+	import { ensureSheetSetup, findOrCreateSpreadsheet } from "$lib/sheets.js";
 	import { authenticated, errorMessage } from "$lib/stores.js";
 	import { GOOGLE_CLIENT_ID } from "$lib/config.js";
 
@@ -37,8 +37,14 @@
 				// Try to restore a previous session
 				const restored = await tryRestoreSession();
 				if (restored) {
-					await ensureSheetSetup();
-					$authenticated = true;
+					try {
+						await findOrCreateSpreadsheet();
+						await ensureSheetSetup();
+						$authenticated = true;
+					} catch {
+						// Token may lack new scopes — clear it and require fresh sign-in
+						signOut();
+					}
 				}
 			}
 		}, 100);
@@ -50,6 +56,7 @@
 		signingIn = true;
 		try {
 			await signIn();
+			await findOrCreateSpreadsheet();
 			await ensureSheetSetup();
 			$authenticated = true;
 		} catch (e) {

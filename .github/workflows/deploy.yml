@@ -30,7 +30,6 @@ jobs:
         env:
           NODE_ENV: production
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-          VITE_SHEET_ID: ${{ secrets.VITE_SHEET_ID }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
