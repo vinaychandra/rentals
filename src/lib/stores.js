@@ -15,6 +15,6 @@ export const errorMessage = writable('');
  * @param {number} [duration=5000]
  */
 export function showError(msg, duration = 5000) {
-	errorMessage.set(msg);
-	setTimeout(() => errorMessage.set(''), duration);
+    errorMessage.set(msg);
+    setTimeout(() => errorMessage.set(''), duration);
 }

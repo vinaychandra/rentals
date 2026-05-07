@@ -14,27 +14,27 @@ A lightweight web app for tracking rental properties and electricity billing, ba
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | SvelteKit (static adapter) |
-| Styling | Tailwind CSS v4 |
-| Auth | Google Identity Services (OAuth 2.0) |
-| Data | Google Sheets API v4 |
-| Hosting | GitHub Pages |
-| CI/CD | GitHub Actions |
+| Layer     | Technology                           |
+| --------- | ------------------------------------ |
+| Framework | SvelteKit (static adapter)           |
+| Styling   | Tailwind CSS v4                      |
+| Auth      | Google Identity Services (OAuth 2.0) |
+| Data      | Google Sheets API v4                 |
+| Hosting   | GitHub Pages                         |
+| CI/CD     | GitHub Actions                       |
 
 ## Google Sheet Structure
 
 Create a single Google Sheet with these 6 tabs (exact names matter):
 
-| Tab | Columns |
-|-----|---------|
-| `Properties` | ID, Name, Address, MonthlyRent, TenantName, TenantContact, Status, Notes |
-| `RentalPayments` | ID, PropertyID, Month, Amount, Method, Date, Notes |
-| `ElectricityClients` | ID, Name, Contact, MeterNumber, Status, Notes |
-| `ElectricityBills` | ID, Month, TotalAmount, Date, Notes |
-| `MeterReadings` | ID, BillID, ClientID, PreviousReading, CurrentReading, Units |
-| `ElectricityPayments` | ID, BillID, ClientID, AmountDue, AmountPaid, Method, Date, Status |
+| Tab                   | Columns                                                                  |
+| --------------------- | ------------------------------------------------------------------------ |
+| `Properties`          | ID, Name, Address, MonthlyRent, TenantName, TenantContact, Status, Notes |
+| `RentalPayments`      | ID, PropertyID, Month, Amount, Method, Date, Notes                       |
+| `ElectricityClients`  | ID, Name, Contact, MeterNumber, Status, Notes                            |
+| `ElectricityBills`    | ID, Month, TotalAmount, Date, Notes                                      |
+| `MeterReadings`       | ID, BillID, ClientID, PreviousReading, CurrentReading, Units             |
+| `ElectricityPayments` | ID, BillID, ClientID, AmountDue, AmountPaid, Method, Date, Status        |
 
 **Important:** Add the header row (column names) to each tab manually. The app reads the first row as headers.
 

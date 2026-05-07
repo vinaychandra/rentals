@@ -6,10 +6,36 @@
 	import { SHEET_NAMES, PAYMENT_METHODS, generateId, formatINR } from '$lib/config.js';
 	import { loading, showError } from '$lib/stores.js';
 
+	const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
 	let property = $state(null);
 	let payments = $state([]);
 	let showForm = $state(false);
-	let form = $state({ month: '', amount: '', method: PAYMENT_METHODS[0], date: new Date().toISOString().split('T')[0], notes: '' });
+	// Default to previous month (e.g. March → February rent)
+	const prevMonth = new Date().getMonth() || 12; // getMonth() is 0-indexed, so 0 (Jan) becomes 12 (Dec)
+	const prevMonthYear = prevMonth === 12 ? new Date().getFullYear() - 1 : new Date().getFullYear();
+
+	let form = $state({
+		month: prevMonth,
+		year: prevMonthYear,
+		amount: '',
+		method: PAYMENT_METHODS[0],
+		date: new Date().toISOString().split('T')[0],
+		notes: ''
+	});
+
+	/** Combined YYYY-MM string from form month/year */
+	let formMonthKey = $derived(`${form.year}-${String(form.month).padStart(2, '0')}`);
+
+	/** How much has already been paid for the selected month */
+	let paidThisMonth = $derived(
+		payments
+			.filter((p) => p.Month === formMonthKey)
+			.reduce((s, p) => s + Number(p.Amount || 0), 0)
+	);
+
+	let rent = $derived(Number(property?.MonthlyRent || 0));
+	let remaining = $derived(Math.max(0, rent - paidThisMonth));
 
 	$effect(() => {
 		const id = $page.params.id;
@@ -40,13 +66,20 @@
 	}
 
 	function resetForm() {
-		form = { month: '', amount: '', method: PAYMENT_METHODS[0], date: new Date().toISOString().split('T')[0], notes: '' };
+		form = {
+			month: prevMonth,
+			year: prevMonthYear,
+			amount: '',
+			method: PAYMENT_METHODS[0],
+			date: new Date().toISOString().split('T')[0],
+			notes: ''
+		};
 		showForm = false;
 	}
 
 	async function savePayment() {
-		if (!form.month || !form.amount || !form.date) {
-			showError('Month, Amount, and Date are required');
+		if (!form.month || !form.year || !form.amount || !form.date) {
+			showError('Month, Year, Amount, and Date are required');
 			return;
 		}
 
@@ -54,7 +87,7 @@
 		try {
 			const id = generateId();
 			await appendRows(SHEET_NAMES.RENTAL_PAYMENTS, [
-				[id, $page.params.id, form.month, form.amount, form.method, form.date, form.notes]
+				[id, $page.params.id, formMonthKey, form.amount, form.method, form.date, form.notes]
 			]);
 			resetForm();
 			await loadData($page.params.id);
@@ -125,10 +158,34 @@
 			<div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6" role="presentation" onclick={(e) => e.stopPropagation()}>
 				<h2 class="text-lg font-semibold mb-4">Add Payment</h2>
 				<form onsubmit={(e) => { e.preventDefault(); savePayment(); }} class="space-y-3">
-					<div>
-						<label for="month" class="block text-sm font-medium text-gray-700">Month *</label>
-						<input id="month" type="month" bind:value={form.month} class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none" />
+					<div class="grid grid-cols-2 gap-3">
+						<div>
+							<label for="month" class="block text-sm font-medium text-gray-700">Month *</label>
+							<select id="month" bind:value={form.month} class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none">
+								{#each MONTHS as name, i}
+									<option value={i + 1}>{name}</option>
+								{/each}
+							</select>
+						</div>
+						<div>
+							<label for="year" class="block text-sm font-medium text-gray-700">Year *</label>
+							<input id="year" type="number" bind:value={form.year} min="2020" max="2099" class="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none" />
+						</div>
 					</div>
+
+					<!-- Rent summary for selected month -->
+					{#if rent > 0}
+						<div class="rounded-md bg-gray-50 px-3 py-2 text-sm">
+							<span class="text-gray-500">Rent: {formatINR(rent)}</span>
+							<span class="mx-1 text-gray-300">|</span>
+							<span class="text-gray-500">Paid: {formatINR(paidThisMonth)}</span>
+							<span class="mx-1 text-gray-300">|</span>
+							<span class="{remaining > 0 ? 'text-orange-500' : 'text-green-600'} font-medium">
+								{remaining > 0 ? `Remaining: ${formatINR(remaining)}` : 'Fully paid ✓'}
+							</span>
+						</div>
+					{/if}
+
 					<div class="grid grid-cols-2 gap-3">
 						<div>
 							<label for="amount" class="block text-sm font-medium text-gray-700">Amount (₹) *</label>

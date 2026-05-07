@@ -14,20 +14,20 @@ let onAuthCallback = null;
  * Must be called after the GIS script has loaded.
  */
 export function initAuth() {
-	tokenClient = google.accounts.oauth2.initTokenClient({
-		client_id: GOOGLE_CLIENT_ID,
-		scope: SCOPES,
-		callback: (response) => {
-			if (response.error) {
-				console.error('Auth error:', response.error);
-				return;
-			}
-			accessToken = response.access_token;
-			if (onAuthCallback) {
-				onAuthCallback(accessToken);
-			}
-		}
-	});
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SCOPES,
+        callback: (response) => {
+            if (response.error) {
+                console.error('Auth error:', response.error);
+                return;
+            }
+            accessToken = response.access_token;
+            if (onAuthCallback) {
+                onAuthCallback(accessToken);
+            }
+        }
+    });
 }
 
 /**
@@ -36,28 +36,28 @@ export function initAuth() {
  * @returns {Promise<string>}
  */
 export function signIn() {
-	return new Promise((resolve, reject) => {
-		if (!tokenClient) {
-			reject(new Error('Auth not initialized. Call initAuth() first.'));
-			return;
-		}
-		onAuthCallback = (token) => {
-			resolve(token);
-		};
-		tokenClient.requestAccessToken({ prompt: 'consent' });
-	});
+    return new Promise((resolve, reject) => {
+        if (!tokenClient) {
+            reject(new Error('Auth not initialized. Call initAuth() first.'));
+            return;
+        }
+        onAuthCallback = (token) => {
+            resolve(token);
+        };
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+    });
 }
 
 /**
  * Sign out by revoking the current token.
  */
 export function signOut() {
-	if (accessToken) {
-		google.accounts.oauth2.revoke(accessToken, () => {
-			accessToken = null;
-		});
-	}
-	accessToken = null;
+    if (accessToken) {
+        google.accounts.oauth2.revoke(accessToken, () => {
+            accessToken = null;
+        });
+    }
+    accessToken = null;
 }
 
 /**
@@ -65,7 +65,7 @@ export function signOut() {
  * @returns {string | null}
  */
 export function getToken() {
-	return accessToken;
+    return accessToken;
 }
 
 /**
@@ -73,5 +73,5 @@ export function getToken() {
  * @returns {boolean}
  */
 export function isSignedIn() {
-	return accessToken !== null;
+    return accessToken !== null;
 }

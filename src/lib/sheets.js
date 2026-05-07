@@ -3,12 +3,12 @@ import { getToken } from './auth.js';
 
 /** Header rows for each sheet tab */
 const TAB_HEADERS = {
-	[SHEET_NAMES.PROPERTIES]: ['ID', 'Name', 'Address', 'MonthlyRent', 'TenantName', 'TenantContact', 'Status', 'Notes'],
-	[SHEET_NAMES.RENTAL_PAYMENTS]: ['ID', 'PropertyID', 'Month', 'Amount', 'Method', 'Date', 'Notes'],
-	[SHEET_NAMES.ELECTRICITY_CLIENTS]: ['ID', 'Name', 'Contact', 'MeterNumber', 'Status', 'Notes'],
-	[SHEET_NAMES.ELECTRICITY_BILLS]: ['ID', 'Month', 'TotalAmount', 'Date', 'Notes'],
-	[SHEET_NAMES.METER_READINGS]: ['ID', 'BillID', 'ClientID', 'PreviousReading', 'CurrentReading', 'Units'],
-	[SHEET_NAMES.ELECTRICITY_PAYMENTS]: ['ID', 'BillID', 'ClientID', 'AmountDue', 'AmountPaid', 'Method', 'Date', 'Status']
+    [SHEET_NAMES.PROPERTIES]: ['ID', 'Name', 'Address', 'MonthlyRent', 'TenantName', 'TenantContact', 'Status', 'Notes'],
+    [SHEET_NAMES.RENTAL_PAYMENTS]: ['ID', 'PropertyID', 'Month', 'Amount', 'Method', 'Date', 'Notes'],
+    [SHEET_NAMES.ELECTRICITY_CLIENTS]: ['ID', 'Name', 'Contact', 'MeterNumber', 'Status', 'Notes'],
+    [SHEET_NAMES.ELECTRICITY_BILLS]: ['ID', 'Month', 'TotalAmount', 'Date', 'Notes'],
+    [SHEET_NAMES.METER_READINGS]: ['ID', 'BillID', 'ClientID', 'PreviousReading', 'CurrentReading', 'Units'],
+    [SHEET_NAMES.ELECTRICITY_PAYMENTS]: ['ID', 'BillID', 'ClientID', 'AmountDue', 'AmountPaid', 'Method', 'Date', 'Status']
 };
 
 /**
@@ -16,12 +16,12 @@ const TAB_HEADERS = {
  * @returns {Record<string, string>}
  */
 function authHeaders() {
-	const token = getToken();
-	if (!token) throw new Error('Not authenticated');
-	return {
-		Authorization: `Bearer ${token}`,
-		'Content-Type': 'application/json'
-	};
+    const token = getToken();
+    if (!token) throw new Error('Not authenticated');
+    return {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+    };
 }
 
 /**
@@ -30,14 +30,14 @@ function authHeaders() {
  * @returns {Promise<string[][]>} Array of rows (each row is array of cell values)
  */
 export async function readSheet(sheetName) {
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}`;
-	const res = await fetch(url, { headers: authHeaders() });
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to read ${sheetName}: ${err.error?.message || res.statusText}`);
-	}
-	const data = await res.json();
-	return data.values || [];
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}`;
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to read ${sheetName}: ${err.error?.message || res.statusText}`);
+    }
+    const data = await res.json();
+    return data.values || [];
 }
 
 /**
@@ -47,16 +47,16 @@ export async function readSheet(sheetName) {
  * @returns {Promise<void>}
  */
 export async function appendRows(sheetName, rows) {
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
-	const res = await fetch(url, {
-		method: 'POST',
-		headers: authHeaders(),
-		body: JSON.stringify({ values: rows })
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to append to ${sheetName}: ${err.error?.message || res.statusText}`);
-	}
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(sheetName)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ values: rows })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to append to ${sheetName}: ${err.error?.message || res.statusText}`);
+    }
 }
 
 /**
@@ -66,16 +66,16 @@ export async function appendRows(sheetName, rows) {
  * @returns {Promise<void>}
  */
 export async function updateRange(range, values) {
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
-	const res = await fetch(url, {
-		method: 'PUT',
-		headers: authHeaders(),
-		body: JSON.stringify({ values })
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to update ${range}: ${err.error?.message || res.statusText}`);
-	}
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+    const res = await fetch(url, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ values })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to update ${range}: ${err.error?.message || res.statusText}`);
+    }
 }
 
 /**
@@ -86,29 +86,29 @@ export async function updateRange(range, values) {
  * @returns {Promise<void>}
  */
 export async function deleteRow(sheetGid, rowIndex) {
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
-	const res = await fetch(url, {
-		method: 'POST',
-		headers: authHeaders(),
-		body: JSON.stringify({
-			requests: [
-				{
-					deleteDimension: {
-						range: {
-							sheetId: sheetGid,
-							dimension: 'ROWS',
-							startIndex: rowIndex,
-							endIndex: rowIndex + 1
-						}
-					}
-				}
-			]
-		})
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to delete row: ${err.error?.message || res.statusText}`);
-	}
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+            requests: [
+                {
+                    deleteDimension: {
+                        range: {
+                            sheetId: sheetGid,
+                            dimension: 'ROWS',
+                            startIndex: rowIndex,
+                            endIndex: rowIndex + 1
+                        }
+                    }
+                }
+            ]
+        })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to delete row: ${err.error?.message || res.statusText}`);
+    }
 }
 
 /**
@@ -116,17 +116,17 @@ export async function deleteRow(sheetGid, rowIndex) {
  * @returns {Promise<Array<{name: string, gid: number}>>}
  */
 export async function getSheetTabs() {
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}?fields=sheets.properties`;
-	const res = await fetch(url, { headers: authHeaders() });
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to get sheet info: ${err.error?.message || res.statusText}`);
-	}
-	const data = await res.json();
-	return (data.sheets || []).map((/** @type {any} */ s) => ({
-		name: s.properties.title,
-		gid: s.properties.sheetId
-	}));
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}?fields=sheets.properties`;
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to get sheet info: ${err.error?.message || res.statusText}`);
+    }
+    const data = await res.json();
+    return (data.sheets || []).map((/** @type {any} */ s) => ({
+        name: s.properties.title,
+        gid: s.properties.sheetId
+    }));
 }
 
 /**
@@ -135,10 +135,10 @@ export async function getSheetTabs() {
  * @returns {Promise<number>}
  */
 export async function getSheetGid(sheetName) {
-	const tabs = await getSheetTabs();
-	const tab = tabs.find((t) => t.name === sheetName);
-	if (!tab) throw new Error(`Sheet tab "${sheetName}" not found`);
-	return tab.gid;
+    const tabs = await getSheetTabs();
+    const tab = tabs.find((t) => t.name === sheetName);
+    if (!tab) throw new Error(`Sheet tab "${sheetName}" not found`);
+    return tab.gid;
 }
 
 /**
@@ -147,21 +147,21 @@ export async function getSheetGid(sheetName) {
  * @returns {Promise<{headers: string[], rows: Record<string, string>[], rawRows: string[][]}>}
  */
 export async function readSheetAsObjects(sheetName) {
-	const allRows = await readSheet(sheetName);
-	if (allRows.length === 0) return { headers: [], rows: [], rawRows: [] };
+    const allRows = await readSheet(sheetName);
+    if (allRows.length === 0) return { headers: [], rows: [], rawRows: [] };
 
-	const headers = allRows[0];
-	const rawRows = allRows.slice(1);
-	const rows = rawRows.map((row) => {
-		/** @type {Record<string, string>} */
-		const obj = {};
-		headers.forEach((h, i) => {
-			obj[h] = row[i] || '';
-		});
-		return obj;
-	});
+    const headers = allRows[0];
+    const rawRows = allRows.slice(1);
+    const rows = rawRows.map((row) => {
+        /** @type {Record<string, string>} */
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h] = row[i] || '';
+        });
+        return obj;
+    });
 
-	return { headers, rows, rawRows };
+    return { headers, rows, rawRows };
 }
 
 /**
@@ -172,13 +172,13 @@ export async function readSheetAsObjects(sheetName) {
  * @returns {Promise<number>} 1-based row number (for A1 notation), or -1 if not found
  */
 export async function findRowById(sheetName, id, idColIndex = 0) {
-	const allRows = await readSheet(sheetName);
-	for (let i = 1; i < allRows.length; i++) {
-		if (allRows[i][idColIndex] === id) {
-			return i + 1; // 1-based for A1 notation
-		}
-	}
-	return -1;
+    const allRows = await readSheet(sheetName);
+    for (let i = 1; i < allRows.length; i++) {
+        if (allRows[i][idColIndex] === id) {
+            return i + 1; // 1-based for A1 notation
+        }
+    }
+    return -1;
 }
 
 /**
@@ -187,44 +187,44 @@ export async function findRowById(sheetName, id, idColIndex = 0) {
  * @returns {Promise<void>}
  */
 export async function ensureSheetSetup() {
-	const existingTabs = await getSheetTabs();
-	const existingNames = new Set(existingTabs.map((t) => t.name));
+    const existingTabs = await getSheetTabs();
+    const existingNames = new Set(existingTabs.map((t) => t.name));
 
-	// Find tabs that need to be created
-	const missingTabs = Object.keys(TAB_HEADERS).filter((name) => !existingNames.has(name));
-	if (missingTabs.length === 0) return;
+    // Find tabs that need to be created
+    const missingTabs = Object.keys(TAB_HEADERS).filter((name) => !existingNames.has(name));
+    if (missingTabs.length === 0) return;
 
-	// Batch-create all missing tabs
-	const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
-	const res = await fetch(url, {
-		method: 'POST',
-		headers: authHeaders(),
-		body: JSON.stringify({
-			requests: missingTabs.map((title) => ({
-				addSheet: { properties: { title } }
-			}))
-		})
-	});
-	if (!res.ok) {
-		const err = await res.json().catch(() => ({}));
-		throw new Error(`Failed to create sheet tabs: ${err.error?.message || res.statusText}`);
-	}
+    // Batch-create all missing tabs
+    const url = `${SHEETS_API_BASE}/${SHEET_ID}:batchUpdate`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+            requests: missingTabs.map((title) => ({
+                addSheet: { properties: { title } }
+            }))
+        })
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Failed to create sheet tabs: ${err.error?.message || res.statusText}`);
+    }
 
-	// Write header rows to all newly created tabs
-	const headerUrl = `${SHEETS_API_BASE}/${SHEET_ID}/values:batchUpdate`;
-	const headerRes = await fetch(headerUrl, {
-		method: 'POST',
-		headers: authHeaders(),
-		body: JSON.stringify({
-			valueInputOption: 'RAW',
-			data: missingTabs.map((name) => ({
-				range: `${name}!A1`,
-				values: [TAB_HEADERS[name]]
-			}))
-		})
-	});
-	if (!headerRes.ok) {
-		const err = await headerRes.json().catch(() => ({}));
-		throw new Error(`Failed to write headers: ${err.error?.message || headerRes.statusText}`);
-	}
+    // Write header rows to all newly created tabs
+    const headerUrl = `${SHEETS_API_BASE}/${SHEET_ID}/values:batchUpdate`;
+    const headerRes = await fetch(headerUrl, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+            valueInputOption: 'RAW',
+            data: missingTabs.map((name) => ({
+                range: `${name}!A1`,
+                values: [TAB_HEADERS[name]]
+            }))
+        })
+    });
+    if (!headerRes.ok) {
+        const err = await headerRes.json().catch(() => ({}));
+        throw new Error(`Failed to write headers: ${err.error?.message || headerRes.statusText}`);
+    }
 }

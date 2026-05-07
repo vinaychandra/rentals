@@ -25,25 +25,25 @@ export const PAYMENT_METHODS = ['Cash', 'Cheque', 'UPI', 'Bank Transfer'];
 
 /** Sheet tab names */
 export const SHEET_NAMES = {
-	PROPERTIES: 'Properties',
-	RENTAL_PAYMENTS: 'RentalPayments',
-	ELECTRICITY_CLIENTS: 'ElectricityClients',
-	ELECTRICITY_BILLS: 'ElectricityBills',
-	METER_READINGS: 'MeterReadings',
-	ELECTRICITY_PAYMENTS: 'ElectricityPayments'
+    PROPERTIES: 'Properties',
+    RENTAL_PAYMENTS: 'RentalPayments',
+    ELECTRICITY_CLIENTS: 'ElectricityClients',
+    ELECTRICITY_BILLS: 'ElectricityBills',
+    METER_READINGS: 'MeterReadings',
+    ELECTRICITY_PAYMENTS: 'ElectricityPayments'
 };
 
 /** Format a number as INR currency */
 export function formatINR(amount) {
-	return new Intl.NumberFormat('en-IN', {
-		style: 'currency',
-		currency: 'INR',
-		minimumFractionDigits: 0,
-		maximumFractionDigits: 0
-	}).format(amount);
+    return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
 
 /** Generate a simple unique ID */
 export function generateId() {
-	return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
